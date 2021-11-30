@@ -24,8 +24,6 @@ private:
   Semaphore full, empty;
 };
 
-
+#include "PCBuffer.inl"
 
 #endif
-
-

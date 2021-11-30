@@ -305,8 +305,8 @@ int main(int argc, char** argv) {
 	// Set mouse button callback.
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 
-	// -- thread testing
 	/*
+	// -- thread testing
 	pcb = make_shared<PCBuffer<string>>(5);
 	pcb->deposit("howdy");
 	pcb->deposit("howdy");

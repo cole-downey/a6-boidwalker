@@ -1,10 +1,12 @@
-#include "PCBuffer.h"
+#ifndef PCBuffer_INL
+#define PCBuffer_INL
 
 #include <thread>
 #include <queue>
 #include <string>
 #include <iostream>
 
+#include "PCBuffer.h"
 using namespace std;
 
 template <class T>
@@ -42,3 +44,5 @@ T PCBuffer<T>::retrieve() {
   empty.V();
   return item;
 }
+
+#endif
