@@ -7,35 +7,38 @@
 
 using namespace std;
 
-PCBuffer::PCBuffer(int _size) : mutex(1), full(0), empty(_size), size(_size) { // what should empty be init to?
+template <class T>
+PCBuffer<T>::PCBuffer(int _size) : mutex(1), full(0), empty(_size), size(_size) { // what should empty be init to?
   size = _size;
-  buffer = new queue<string>();
+  buffer = new queue<T>();
 }
 
-PCBuffer::~PCBuffer() {
-    delete buffer;
+template <class T>
+PCBuffer<T>::~PCBuffer() {
+  delete buffer;
 }
 
-int PCBuffer::deposit(string _item) {
+template <class T>
+int PCBuffer<T>::deposit(T item) {
   empty.P();
-  //cout << "h" << endl;
   mutex.P();
 
-  buffer->push(_item);
+  buffer->push(item);
 
   mutex.V();
   full.V();
   return size;
 }
 
-string PCBuffer::retrieve() {
+template <class T>
+T PCBuffer<T>::retrieve() {
   full.P();
   mutex.P();
 
-  string s = buffer->front();
+  T item = buffer->front();
   buffer->pop();
 
   mutex.V();
   empty.V();
-  return s;
+  return item;
 }

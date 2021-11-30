@@ -8,21 +8,22 @@
 
 #include "Semaphore.h"
 
-
+template <class T>
 class PCBuffer {
 public:
   PCBuffer(int _size);
   ~PCBuffer();
 
-  int deposit(std::string _item);
-  std::string retrieve();
+  int deposit(T item);
+  T retrieve();
 
 private:
-  std::queue<std::string>* buffer;
+  std::queue<T>* buffer;
   int size;
   Semaphore mutex;
   Semaphore full, empty;
 };
+
 
 
 #endif

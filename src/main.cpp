@@ -39,7 +39,7 @@ shared_ptr<Camera> camera;
 shared_ptr<Program> prog;
 shared_ptr<Program> progSimple;
 shared_ptr<Scene> scene;
-shared_ptr<PCBuffer> pcb;
+shared_ptr<PCBuffer<string>> pcb;
 
 shared_ptr<double> t, t0;
 
@@ -238,15 +238,16 @@ void render() {
 	GLSL::checkError(GET_FILE_LINE);
 }
 
-void stepperFunc(int i) {
+void stepperFunc() {
 	while (true) {
 		double t1 = glfwGetTime();
 		if (keyToggles[(unsigned)' ']) {
 			// changing timestep based on completion time of last loop, so that simulation speed remains consistent
 			double dt = (t1 - *t0);
 			*t += dt;
+			//double t2 = glfwGetTime();
 			scene->step(dt);
-			//cout << i << endl;
+			//cout << glfwGetTime() - t2 << endl;
 		}
 		*t0 = t1;
 		this_thread::sleep_for(chrono::microseconds(1));
@@ -305,7 +306,8 @@ int main(int argc, char** argv) {
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
 
 	// -- thread testing
-	pcb = make_shared<PCBuffer>(5);
+	/*
+	pcb = make_shared<PCBuffer<string>>(5);
 	pcb->deposit("howdy");
 	pcb->deposit("howdy");
 	pcb->deposit("howdy");
@@ -315,11 +317,12 @@ int main(int argc, char** argv) {
 
 	threadA.join();
 	threadB.join();
+	*/
 
 	// Initialize scene.
 	init();
 	// Start simulation thread.
-	thread stepperThread(stepperFunc, 5);
+	thread stepperThread(stepperFunc);
 	// Loop until the user closes the window.
 	while (!glfwWindowShouldClose(window)) {
 		// Render scene.

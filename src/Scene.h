@@ -15,6 +15,7 @@ class Shape;
 class Boid;
 class Obstacle;
 struct Bounds;
+#include "PCBuffer.h"
 
 class Scene {
 public:
@@ -46,6 +47,8 @@ private:
 
 	glm::vec3 generateRandomPos(Bounds bounds);
 	glm::vec3 generateRandomPos2(Bounds bounds);
+
+	std::shared_ptr<PCBuffer<int>> pcb;
 
 };
 

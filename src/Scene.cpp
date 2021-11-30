@@ -12,6 +12,7 @@
 #include "Boid.h"
 #include "Bounds.h"
 #include "Obstacle.h"
+#include "PCBuffer.h"
 
 
 using namespace std;
@@ -64,6 +65,9 @@ void Scene::load(const string& RESOURCE_DIR) {
 		b->setFlock(boidFlock);
 	}
 
+	// threading
+	pcb = make_shared<PCBuffer<int>>(nBoids);
+	
 }
 
 void Scene::init() {
