@@ -10,7 +10,7 @@
 using namespace std;
 
 template <class T>
-PCBuffer<T>::PCBuffer(int _size) : mutex(1), full(0), empty(_size), size(_size) { // what should empty be init to?
+PCBuffer<T>::PCBuffer(int _size) : mutex(1), full(0), empty(size), size(_size) { // what should empty be init to?
   size = _size;
   buffer = new queue<T>();
 }

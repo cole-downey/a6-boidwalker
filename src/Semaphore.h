@@ -3,6 +3,7 @@
 #define _Semaphore_H_
 
 #include <mutex>
+#include <condition_variable>
 
 class Semaphore {
 public:
@@ -15,7 +16,7 @@ public:
 private:
   int value;
   std::mutex mtx;
-  std::unique_lock<std::mutex> m;
+  //std::unique_lock<std::mutex> m;
   std::condition_variable c;
 };
 

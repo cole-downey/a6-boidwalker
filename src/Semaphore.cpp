@@ -7,32 +7,28 @@
 using namespace std;
 
 Semaphore::Semaphore(int _val) : value(_val) {
-  m = unique_lock<mutex>(mtx); // comes locked by default
-  m.unlock();
+  //m = unique_lock<mutex>(mtx); // comes locked by default
+  //m.unlock();
 }
 
 Semaphore::~Semaphore() {}
 
 int Semaphore::P() {
-  m.lock();
+  unique_lock<mutex> lock(mtx);
   value--;
   if (value < 0) {
     // block
-    c.wait(m);
-    m.unlock();
-  } else {
-    m.unlock();
+    c.wait(lock);
   }
   return value;
 }
 
 int Semaphore::V() {
-  m.lock();
+  unique_lock<mutex> lock(mtx);
   value++;
   if (value < 1) {
     // unblock waiting thread
-    c.notify_all();
+    c.notify_one();
   }
-  m.unlock();
   return value;
 }

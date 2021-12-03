@@ -6,6 +6,11 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#ifndef _GLIBCXX_USE_NANOSLEEP
+#define _GLIBCXX_USE_NANOSLEEP
+#endif
+#include <thread>
+
 #include "Scene.h"
 #include "Shape.h"
 #include "Program.h"
@@ -20,15 +25,26 @@ using namespace glm;
 
 Scene::Scene() :
 	t(0.0),
-	h(1e-2) {
+	h(1e-2),
+	useThreads(true),
+	nThreads(8) {
 }
 
 Scene::~Scene() {
+	// join threads
+	if (useThreads) {
+		for (int i = 0; i < threads.size(); i++) {
+			//for (auto t : threads) {
+			threads.at(i).detach();
+		}
+	}
+	delete commandPCB;
+	delete responsePCB;
 }
 
 void Scene::load(const string& RESOURCE_DIR) {
 	// Units: meters, kilograms, seconds
-	h = 5e-3 * 5;
+	h = 5e-3;
 
 
 	boidShape = make_shared<Shape>();
@@ -43,31 +59,27 @@ void Scene::load(const string& RESOURCE_DIR) {
 	obs->setShape(obsShape);
 	obstacles.push_back(obs);
 
-	int nBoids = 600;
+	nBoids = 600;
 	auto bounds = Bounds(4.0f, 3.0f, 4.0f, -4.0f, 0.0f, -4.0f);
 	auto target1 = vec3(0.0f, 0.5f, 0.0f);
 	auto target2 = vec3(-2.5f, 0.5f, 1.5f);
 	auto target3 = vec3(2.5f, 0.5f, 1.5f);
 	vec3 targetIncrement = (target3 - target2) / (float)(nBoids / 2);
 	for (int i = 0; i < nBoids; i++) {
-		auto boid = make_shared<Boid>();
-		boid->pos = generateRandomPos2(bounds);
+		auto boid = make_shared<Boid>(generateRandomPos2(bounds));
 		boid->setShape(boidShape);
 		boid->setFlock(boidFlock);
 		boid->setObstacles(obstacles);
 		boid->setBounds(bounds);
 		//boid->setTarget(target2 + targetIncrement * (float)i);
 		if (i % 2 == 0) boid->setTarget(target2 + targetIncrement * (float)(i / 2));
-		//else boid->setTarget(target2);
+		//if (i % 2 == 0) boid->setTarget(target1);
 		boidFlock.push_back(boid);
 	}
 	for (auto b : boidFlock) {
 		b->setFlock(boidFlock);
 	}
-
-	// threading
-	pcb = make_shared<PCBuffer<int>>(nBoids);
-	
+	cout << "scene load done" << endl;
 }
 
 void Scene::init() {
@@ -75,6 +87,20 @@ void Scene::init() {
 	boidShape->normalize();
 	obsShape->init();
 	obsShape->normalize();
+
+	// threading
+	if (useThreads) {
+		commandPCB = new PCBuffer<float>(10);
+		responsePCB = new PCBuffer<bool>(10);
+
+		int boidsPerThread = nBoids / nThreads;
+		for (int i = 0; i < nThreads; i++) {
+			int first = i * boidsPerThread; // first i for a thread to use
+			int last = (i + 1) * boidsPerThread - 1; // last i, inclusive
+			if (i == nThreads - 1) last = nBoids - 1;
+			threads.push_back(thread(&Scene::boidHandler, this, i, first, last));
+		}
+	}
 }
 
 void Scene::tare() {
@@ -84,16 +110,53 @@ void Scene::reset() {
 	t = 0.0;
 }
 
+void Scene::threadTest() {
+	if (useThreads) {
+		for (int i = 0; i < nThreads; i++) {
+			commandPCB->deposit(-1.0f);
+			responsePCB->retrieve();
+		}
+	}
+}
+
 void Scene::step() {
 	t += h;
-	for (auto b : boidFlock) {
-		b->update(h);
+	if (useThreads) {
+		for (int i = 0; i < threads.size(); i++) {
+			// deposit h once for each thread
+			commandPCB->deposit((float)h);
+		}
+		for (int i = 0; i < threads.size(); i++) {
+			// wait for each thread to complete before returning
+			responsePCB->retrieve();
+		}
+	} else {
+		for (auto b : boidFlock) {
+			b->update((float)h);
+		}
 	}
 }
 
 void Scene::step(double timestep) {
 	h = timestep;
 	step();
+}
+
+void Scene::boidHandler(int pid, int first, int last) {
+	//cout << "thread " << pid << " created" << endl;
+	while (true) {
+		float command = commandPCB->retrieve();
+		if (command < 0) {
+			cout << "command ignore" << endl;
+		} else {
+			// for each boid, do command
+			for (int i = first; i <= last; i++) {
+				boidFlock.at(i)->update(command);
+			}
+		}
+		responsePCB->deposit(true);
+		this_thread::sleep_for(chrono::microseconds(1));
+	}
 }
 
 void Scene::toggleTarget() {
@@ -151,3 +214,4 @@ vec3 Scene::generateRandomPos2(Bounds bounds) {
 	pos += spawnRadius * normalize(r);
 	return pos;
 }
+

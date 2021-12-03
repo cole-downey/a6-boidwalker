@@ -56,14 +56,20 @@ static void key_callback(GLFWwindow* window, int key, int scancode, int action, 
 static void char_callback(GLFWwindow* window, unsigned int key) {
 	keyToggles[key] = !keyToggles[key];
 	switch (key) {
-	case 'h':
+	case 'h': {
+		auto ta = glfwGetTime();
 		scene->step();
+		cout << "Step time: " << glfwGetTime() - ta << endl;
 		break;
+	}
 	case 'p':
 		scene->togglePointingObs();
 		break;
 	case 't':
 		scene->toggleTarget();
+		break;
+	case 'e':
+		scene->threadTest();
 		break;
 	case 'r':
 		scene->reset();
@@ -74,7 +80,7 @@ static void char_callback(GLFWwindow* window, unsigned int key) {
 static void cursor_position_callback(GLFWwindow* window, double xmouse, double ymouse) {
 	int state = glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT);
 	if (state == GLFW_PRESS) {
-		camera->mouseMoved(xmouse, ymouse);
+		camera->mouseMoved((float)xmouse, (float)ymouse);
 	}
 }
 
@@ -89,7 +95,7 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 		bool shift = mods & GLFW_MOD_SHIFT;
 		bool ctrl = mods & GLFW_MOD_CONTROL;
 		bool alt = mods & GLFW_MOD_ALT;
-		camera->mouseClicked(xmouse, ymouse, shift, ctrl, alt);
+		camera->mouseClicked((float)xmouse, (float)ymouse, shift, ctrl, alt);
 	}
 }
 

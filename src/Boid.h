@@ -4,6 +4,8 @@
 
 #include <vector>
 #include <memory>
+#include <mutex>
+#include "Semaphore.h"
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
@@ -17,7 +19,7 @@ class Obstacle;
 
 class Boid {
 public:
-    Boid();
+    Boid(glm::vec3 _pos);
     ~Boid() {};
     void update(float timestep);
     void draw(std::shared_ptr<MatrixStack> MV, const std::shared_ptr<Program> p) const;
@@ -27,13 +29,16 @@ public:
     void setTarget(glm::vec3 _target) { target = _target; targetSet = true; };
     void toggleTarget() { if (targetSet) targetEnabled = !targetEnabled; };
     void setBounds(Bounds _bounds) { bounds = _bounds; boundsSet = true; };
+    glm::vec3 getVelocity();
+    glm::vec3 getPos();
 
     static int ID_COUNT;
     int id;
-    glm::vec3 pos;
-    glm::vec3 velocity;
     float r;
 private:
+    glm::vec3 pos;
+    glm::vec3 velocity;
+
     glm::vec3 rule1(); // separation
     glm::vec3 rule1a(); // separation
     glm::vec3 rule2(); // alignment
@@ -54,6 +59,9 @@ private:
     bool boundsSet = false;
 
     float influenceDist; // how close does another boid have to be to influence the rest
+
+    // threading
+    std::mutex mtxP, mtxV;
 };
 
 #endif

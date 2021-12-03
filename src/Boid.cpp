@@ -22,9 +22,9 @@ using namespace glm;
 
 int Boid::ID_COUNT = 0; // declared in header, but needs to be defined (here)
 
-Boid::Boid() :
+Boid::Boid(vec3 _pos) :
     id(ID_COUNT),
-    pos(vec3(0.0f)),
+    pos(_pos),
     velocity(0.0f, 0.0f, 0.0f),
     influenceDist(0.66f),
     r(0.03f) {
@@ -61,10 +61,28 @@ void Boid::update(float timestep) {
     accel += rule3();
     accel += moveTarget2();
     accel += stayBounds();
+    mtxV.lock();
     velocity += accel * timestep / (float)(5e-3); // accel values balanced around 5e-3 timestep
     if (length(velocity) > maxSpeed) velocity = maxSpeed * normalize(velocity);
     else if (length(velocity) < minSpeed) velocity = minSpeed * normalize(velocity);
+    mtxV.unlock();
+    mtxP.lock();
     pos += timestep * velocity;
+    mtxP.unlock();
+}
+
+vec3 Boid::getVelocity() {
+    mtxV.lock();
+    vec3 vel = velocity;
+    mtxV.unlock();
+    return vel;
+}
+
+vec3 Boid::getPos() {
+    mtxP.lock();
+    vec3 p = pos;
+    mtxP.unlock();
+    return p;
 }
 
 vec3 Boid::rule1() {
@@ -94,13 +112,14 @@ vec3 Boid::rule1a() {
     vec3 repellant(0.0f);
     for (auto b : flock) {
         if (b->id != id) {
-            float dist = distance(pos, b->pos) - b->r - r;
+            vec3 bPos = b->getPos();
+            float dist = distance(pos, bPos) - b->r - r;
             if (dist < r1Dist) {
                 //float repMag = r1Dist - dist;
                 //repellant -= repMag * normalize(b->pos - pos);
-                float collDot = dot(velocity, (b->pos - pos));
+                float collDot = dot(velocity, (bPos - pos));
                 if (collDot < 0) {
-                    vec3 collVel = velocity * dot(velocity, (b->pos - pos));
+                    vec3 collVel = velocity * dot(velocity, (bPos - pos));
                     repellant += collVel;
                 }
             }
@@ -129,8 +148,8 @@ vec3 Boid::rule2() {
     int iCount = 0;
     for (auto b : flock) {
         if (b->id != id) {
-            if (distance(pos, b->pos) < influenceDist) {
-                meanV += b->velocity;
+            if (distance(pos, b->getPos()) < influenceDist) {
+                meanV += b->getVelocity();
                 iCount++;
             }
         }
@@ -148,8 +167,9 @@ vec3 Boid::rule3() {
     int iCount = 0;
     for (auto b : flock) {
         if (b->id != id) {
-            if (distance(pos, b->pos) < influenceDist) {
-                center += b->pos;
+            vec3 bPos = b->getPos();
+            if (distance(pos, bPos) < influenceDist) {
+                center += bPos;
                 iCount++;
             }
         }
