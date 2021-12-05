@@ -71,9 +71,6 @@ static void char_callback(GLFWwindow* window, unsigned int key) {
 	case 'e':
 		scene->threadTest();
 		break;
-	case 'r':
-		scene->reset();
-		break;
 	}
 }
 
@@ -135,7 +132,6 @@ static void init() {
 
 	scene = make_shared<Scene>();
 	scene->load(RESOURCE_DIR);
-	scene->tare();
 	scene->init();
 
 	// Initialize time.

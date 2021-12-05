@@ -117,7 +117,7 @@ void Shape::draw(const shared_ptr<Program> prog) const {
 	}
 
 	// Draw
-	int count = posBuf.size() / 3; // number of indices to be rendered
+	int count = (int)posBuf.size() / 3; // number of indices to be rendered
 	glDrawArrays(GL_TRIANGLES, 0, count);
 
 	// Disable and unbind
@@ -134,7 +134,7 @@ void Shape::draw(const shared_ptr<Program> prog) const {
 }
 
 void Shape::normalize() {
-	int count = posBuf.size() / 3;
+	int count = (int)posBuf.size() / 3;
 	float maxDist = -1;
 	glm::vec3 center(0.0f);
 	for (int i = 0; i < count; i++) {

@@ -32,13 +32,12 @@ void Obstacle::draw(shared_ptr<MatrixStack> MV, const shared_ptr<Program> prog) 
     if (shape) {
         glUniform3fv(prog->getUniform("kdFront"), 1, glm::value_ptr(vec3(1.0)));
         MV->pushMatrix();
-        MV->translate(pos);
-        MV->scale(r);
+        if (!pointing) MV->translate(pos);
         if (pointing) {
-            glm::mat4 g = glm::transpose(glm::lookAt(vec3(1.0f, 1.0f, 1.0f), vec3(-1.0f, 1.0f, -1.0f), vec3(0.0f, 1.0f, 0.0f)));
-            glm::mat4 E = glm::mat4_cast(glm::normalize(glm::toQuat(g)));
+            glm::mat4 E = inverse(lookAt(pos, vec3(0.0f), vec3(0, 1, 0)));
             MV->multMatrix(E);
         }
+        MV->scale(r);
         if (pointing) MV->rotate(radians(-90.0f), vec3(1.0f, 0.0f, 0.0f));
         glUniformMatrix4fv(prog->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
         shape->draw(prog);

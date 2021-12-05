@@ -25,10 +25,10 @@ int Boid::ID_COUNT = 0; // declared in header, but needs to be defined (here)
 Boid::Boid(vec3 _pos) :
     id(ID_COUNT),
     pos(_pos),
-    velocity(0.0f, 0.0f, 0.0f),
     influenceDist(0.66f),
     r(0.03f) {
     ID_COUNT++;
+    velocity = normalize(vec3(0.0f) - pos) * 0.001f; // give a slight velocity to render rotation properly
 }
 
 void Boid::draw(shared_ptr<MatrixStack> MV, const shared_ptr<Program> prog) const {
@@ -38,14 +38,9 @@ void Boid::draw(shared_ptr<MatrixStack> MV, const shared_ptr<Program> prog) cons
         else
             glUniform3fv(prog->getUniform("kdFront"), 1, glm::value_ptr(vec3(0.0, 0.0, 1.0)));
         MV->pushMatrix();
-        MV->translate(pos);
+        MV->multMatrix(inverse(lookAt(pos, pos + velocity, vec3(0.0f, 1.0f, 0.0f))));
         MV->scale(r);
-        glm::mat4 g = glm::transpose(glm::lookAt(vec3(0.0f), velocity, vec3(0.0f, 1.0f, 0.0f)));
-        glm::mat4 E = glm::mat4_cast(glm::normalize(glm::toQuat(g)));
-        MV->multMatrix(E);
         MV->rotate(radians(-90.0f), vec3(1.0f, 0.0f, 0.0f));
-        //MV->multMatrix(glm::lookAt(vec3(0.0f), velocity, vec3(0.0f, 1.0f, 0.0f)));
-        //MV->rotate(radians(90.0f), vec3(0.0f, 0.0f, 1.0f));
         glUniformMatrix4fv(prog->getUniform("MV"), 1, GL_FALSE, glm::value_ptr(MV->topMatrix()));
         shape->draw(prog);
         MV->popMatrix();
@@ -76,6 +71,10 @@ vec3 Boid::getVelocity() {
     vec3 vel = velocity;
     mtxV.unlock();
     return vel;
+    /* is this method faster than using unique lock?
+    unique_lock<mutex> lock(mtxV);
+    return velocity;
+    */
 }
 
 vec3 Boid::getPos() {
@@ -83,6 +82,10 @@ vec3 Boid::getPos() {
     vec3 p = pos;
     mtxP.unlock();
     return p;
+    /* is this method faster than using unique lock?
+    unique_lock<mutex> lock(mtxP);
+    return pos;
+    */
 }
 
 vec3 Boid::rule1() {

@@ -24,8 +24,7 @@ using namespace std;
 using namespace glm;
 
 Scene::Scene() :
-	t(0.0),
-	h(1e-2),
+	h(1e-3),
 	useThreads(true),
 	nThreads(8) {
 }
@@ -44,9 +43,6 @@ Scene::~Scene() {
 
 void Scene::load(const string& RESOURCE_DIR) {
 	// Units: meters, kilograms, seconds
-	h = 5e-3;
-
-
 	boidShape = make_shared<Shape>();
 	boidShape->loadMesh(RESOURCE_DIR + "cone.obj");
 	obsShape = make_shared<Shape>();
@@ -103,13 +99,6 @@ void Scene::init() {
 	}
 }
 
-void Scene::tare() {
-}
-
-void Scene::reset() {
-	t = 0.0;
-}
-
 void Scene::threadTest() {
 	if (useThreads) {
 		for (int i = 0; i < nThreads; i++) {
@@ -120,7 +109,6 @@ void Scene::threadTest() {
 }
 
 void Scene::step() {
-	t += h;
 	if (useThreads) {
 		for (int i = 0; i < threads.size(); i++) {
 			// deposit h once for each thread

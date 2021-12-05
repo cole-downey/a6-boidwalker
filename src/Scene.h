@@ -26,8 +26,6 @@ public:
 
 	void load(const std::string& RESOURCE_DIR);
 	void init();
-	void tare();
-	void reset();
 	void step();
 	void step(double timestep);
 	void toggleTarget();
@@ -35,14 +33,12 @@ public:
 
 	void draw(std::shared_ptr<MatrixStack> MV, const std::shared_ptr<Program> prog) const;
 
-	double getTime() const { return t; }
 	void boidHandler(int pid, int first, int last); // thread function
 
 	void threadTest();
 
 private:
 	// time
-	double t;
 	double h;
 
 	// objects
