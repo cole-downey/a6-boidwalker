@@ -21,27 +21,34 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#define TINYOBJLOADER_IMPLEMENTATION
+#include "tiny_obj_loader.h"
+
 #include "GLSL.h"
 #include "Program.h"
 #include "Camera.h"
 #include "MatrixStack.h"
 #include "Shape.h"
 #include "Scene.h"
+#include "BoneCharacter.h"
 
 using namespace std;
 
 bool keyToggles[256] = { false }; // only for English keyboards!
 
 GLFWwindow* window; // Main application window
-string RESOURCE_DIR = ""; // Where the resources are loaded from
+string RESOURCE_DIR = ""; // Where the shaders are loaded from
+string DATA_DIR = ""; // Where the animation and mesh data is loaded from
 
 shared_ptr<Camera> camera;
 shared_ptr<Program> prog;
 shared_ptr<Program> progSimple;
 shared_ptr<Scene> scene;
+shared_ptr<BoneCharacter> boneCharacter;
 shared_ptr<PCBuffer<string>> pcb;
 
 shared_ptr<double> t, t0;
+double animt, animt0;
 
 static void error_callback(int error, const char* description) {
 	cerr << description << endl;
@@ -141,6 +148,10 @@ static void init() {
 	*t = glfwGetTime();
 	*t0 = glfwGetTime();
 
+	boneCharacter = make_shared<BoneCharacter>();
+	boneCharacter->loadAnimData(DATA_DIR);
+	boneCharacter->init();
+
 	// If there were any OpenGL errors, this will print something.
 	// You can intersperse this line in your code to find the exact location
 	// of your OpenGL error.
@@ -148,6 +159,14 @@ static void init() {
 }
 
 void render() {
+	// Update time.
+	double animt1 = glfwGetTime();
+	double dt = animt1 - animt0;
+	if (keyToggles[(unsigned)'a']) {
+		animt += dt;
+	}
+	animt0 = animt1;
+
 	// Get current frame buffer size.
 	int width, height;
 	glfwGetFramebufferSize(window, &width, &height);
@@ -227,7 +246,12 @@ void render() {
 	MV->pushMatrix();
 	scene->draw(MV, prog);
 	MV->popMatrix();
+	// Draw bones
+	MV->pushMatrix();
+	boneCharacter->draw(MV, prog, animt);
+	MV->popMatrix();
 	prog->unbind();
+
 
 	//////////////////////////////////////////////////////
 	// Cleanup
@@ -256,22 +280,13 @@ void stepperFunc() {
 	}
 }
 
-void stringFunc(int id) {
-	int count = 0;
-	while (count < 2) {
-		string s = pcb->retrieve();
-		count++;
-		cout << id << " : " << s << endl;
-		this_thread::sleep_for(chrono::microseconds(1));
-	}
-}
-
 int main(int argc, char** argv) {
-	if (argc < 2) {
-		cout << "Please specify the resource directory." << endl;
+	if (argc < 3) {
+		cout << "Usage: A2 <SHADER DIR> <DATA DIR>" << endl;
 		return 0;
 	}
 	RESOURCE_DIR = argv[1] + string("/");
+	DATA_DIR = argv[2] + string("/");
 
 	// Set error callback.
 	glfwSetErrorCallback(error_callback);
@@ -306,20 +321,6 @@ int main(int argc, char** argv) {
 	glfwSetCursorPosCallback(window, cursor_position_callback);
 	// Set mouse button callback.
 	glfwSetMouseButtonCallback(window, mouse_button_callback);
-
-	/*
-	// -- thread testing
-	pcb = make_shared<PCBuffer<string>>(5);
-	pcb->deposit("howdy");
-	pcb->deposit("howdy");
-	pcb->deposit("howdy");
-	pcb->deposit("howdy");
-	thread threadA(stringFunc, 1);
-	thread threadB(stringFunc, 2);
-
-	threadA.join();
-	threadB.join();
-	*/
 
 	// Initialize scene.
 	init();

@@ -7,7 +7,6 @@
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
 
-#define TINYOBJLOADER_IMPLEMENTATION
 #include "tiny_obj_loader.h"
 
 using namespace std;
