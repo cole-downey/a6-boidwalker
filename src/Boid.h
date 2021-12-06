@@ -34,6 +34,7 @@ public:
 
     static int ID_COUNT;
     int id;
+    int targetId;
     float r;
 private:
     glm::vec3 pos;

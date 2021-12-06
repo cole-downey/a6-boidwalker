@@ -30,7 +30,6 @@
 #include "MatrixStack.h"
 #include "Shape.h"
 #include "Scene.h"
-#include "BoneCharacter.h"
 
 using namespace std;
 
@@ -44,7 +43,6 @@ shared_ptr<Camera> camera;
 shared_ptr<Program> prog;
 shared_ptr<Program> progSimple;
 shared_ptr<Scene> scene;
-shared_ptr<BoneCharacter> boneCharacter;
 shared_ptr<PCBuffer<string>> pcb;
 
 shared_ptr<double> t, t0;
@@ -138,7 +136,7 @@ static void init() {
 	camera->setInitDistance(9);
 
 	scene = make_shared<Scene>();
-	scene->load(RESOURCE_DIR);
+	scene->load(RESOURCE_DIR, DATA_DIR);
 	scene->init();
 
 	// Initialize time.
@@ -147,10 +145,6 @@ static void init() {
 	t0 = make_shared<double>();
 	*t = glfwGetTime();
 	*t0 = glfwGetTime();
-
-	boneCharacter = make_shared<BoneCharacter>();
-	boneCharacter->loadAnimData(DATA_DIR);
-	boneCharacter->init();
 
 	// If there were any OpenGL errors, this will print something.
 	// You can intersperse this line in your code to find the exact location
@@ -244,11 +238,7 @@ void render() {
 	prog->bind();
 	glUniformMatrix4fv(prog->getUniform("P"), 1, GL_FALSE, glm::value_ptr(P->topMatrix()));
 	MV->pushMatrix();
-	scene->draw(MV, prog);
-	MV->popMatrix();
-	// Draw bones
-	MV->pushMatrix();
-	boneCharacter->draw(MV, prog, animt);
+	scene->draw(MV, prog, animt);
 	MV->popMatrix();
 	prog->unbind();
 

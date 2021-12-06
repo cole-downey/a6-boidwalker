@@ -20,7 +20,7 @@ public:
 		Attachment(int v, int b, float w) : vertInd(v), boneInd(b), weight(w) {};
 	};
 
-	ShapeSkin(std::shared_ptr<std::vector<Bone> > _bones);
+	ShapeSkin(std::shared_ptr<std::vector<std::shared_ptr<Bone> > > _bones);
 	virtual ~ShapeSkin();
 	void loadMesh(const std::string& meshName);
 	void loadAttachment(const std::string& filename);
@@ -36,7 +36,7 @@ private:
 	std::vector<float> bindPosBuf;
 	std::vector<float> bindNorBuf;
 
-	std::shared_ptr<std::vector<Bone> > bones;
+	std::shared_ptr<std::vector<std::shared_ptr<Bone> > > bones;
 	int nBones;
 	std::shared_ptr<std::vector<Attachment> >weights;
 };

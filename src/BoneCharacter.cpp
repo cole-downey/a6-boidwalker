@@ -14,6 +14,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/transform.hpp>
 
 #include "Bone.h"
 #include "ShapeSkin.h"
@@ -22,15 +23,15 @@
 
 using namespace std;
 
-BoneCharacter::BoneCharacter() {
-    bones = make_shared<vector<Bone> >();
+BoneCharacter::BoneCharacter() : fps(15), scale(0.015f) {
+    bones = make_shared<vector<shared_ptr<Bone> > >();
 }
 
 BoneCharacter::~BoneCharacter() {
-
+    bones = make_shared<vector<shared_ptr<Bone> > >();
 }
 
-void BoneCharacter::loadAnimData(string dataDir) {
+void BoneCharacter::loadAnimData(const string& dataDir) {
     DATA_DIR = dataDir;
     string filename = DATA_DIR + "input.txt";
     ifstream in;
@@ -39,7 +40,7 @@ void BoneCharacter::loadAnimData(string dataDir) {
         cout << "Cannot read " << filename << endl;
         return;
     }
-    cout << "Loading " << filename << endl;
+    //cout << "Loading " << filename << endl;
 
     string line;
     while (1) {
@@ -68,8 +69,6 @@ void BoneCharacter::loadAnimData(string dataDir) {
             mesh.push_back(value); // obj
             ss >> value;
             mesh.push_back(value); // skin
-            ss >> value;
-            mesh.push_back(value); // texture
             animInput.meshData.push_back(mesh);
         } else if (key.compare("SKELETON") == 0) {
             ss >> value;
@@ -82,8 +81,8 @@ void BoneCharacter::loadAnimData(string dataDir) {
 }
 
 void BoneCharacter::init() {
-    initShapes();
     initBones();
+    initShapes();
 }
 
 void BoneCharacter::initBones() {
@@ -94,7 +93,7 @@ void BoneCharacter::initBones() {
         cout << "Cannot read " << filename << endl;
         return;
     }
-    cout << "Loading " << filename << endl;
+    //cout << "Loading " << filename << endl;
 
     string line;
     while (1) {
@@ -117,7 +116,7 @@ void BoneCharacter::initBones() {
     }
     // fill bones vector
     for (int i = 0; i < nBones; i++) {
-        bones->push_back(Bone());
+        bones->push_back(make_shared<Bone>());
     }
     while (1) {
         getline(in, line);
@@ -137,14 +136,13 @@ void BoneCharacter::initBones() {
         for (int i = 0; i < nBones; i++) {
             ss >> qx >> qy >> qz >> qw;
             ss >> px >> py >> pz;
-            bones->at(i).addKeyframe(glm::vec3(px, py, pz), glm::quat(qw, qx, qy, qz));
+            bones->at(i)->addKeyframe(glm::vec3(px, py, pz), glm::quat(qw, qx, qy, qz));
         }
     }
     in.close();
 }
 
 void BoneCharacter::initShapes() {
-    bones = make_shared<vector<Bone> >();
     for (const auto& mesh : animInput.meshData) {
         auto shape = make_shared<ShapeSkin>(bones);
         shapes.push_back(shape);
@@ -154,18 +152,25 @@ void BoneCharacter::initShapes() {
 }
 
 
-void BoneCharacter::draw(std::shared_ptr<MatrixStack> MV, std::shared_ptr<Program> prog, double t) {
-    // Draw character
-    double fps = 30;
-    int frame = ((int)floor(t * fps)) % nFrames;
-    draw(MV, prog, frame);
+int BoneCharacter::draw(std::shared_ptr<MatrixStack> MV, std::shared_ptr<Program> prog, double t) {
+    // returns frame #
+    frame = ((int)floor(t * fps)) % nFrames;
+    //draw(MV, prog, frame);
+    return frame;
 }
 
-void BoneCharacter::draw(std::shared_ptr<MatrixStack> MV, std::shared_ptr<Program> prog, int frame) {
+void BoneCharacter::draw(std::shared_ptr<MatrixStack> MV, std::shared_ptr<Program> prog, int _frame) {
     MV->pushMatrix();
-    MV->scale(0.02f);
+    MV->scale(scale);
     for (auto b : *bones) {
-        b.draw(MV, prog, frame);
+        b->draw(MV, prog, _frame);
     }
     MV->popMatrix();
+}
+
+glm::vec3 BoneCharacter::getBonePos(int i, int f) {
+    glm::mat4 E = bones->at(i)->getKeyframe(f);
+    glm::mat4 S = glm::scale(glm::mat4(1.0f), glm::vec3(scale, scale, scale));
+    glm::vec4 p = S * E * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    return glm::vec3(p);
 }

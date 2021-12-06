@@ -14,7 +14,7 @@
 using namespace std;
 using namespace glm;
 
-ShapeSkin::ShapeSkin(std::shared_ptr<std::vector<Bone> > _bones) :
+ShapeSkin::ShapeSkin(std::shared_ptr<std::vector<std::shared_ptr<Bone> > > _bones) :
 	bones(_bones) {
 	weights = make_shared<vector<Attachment> >();
 }
@@ -72,7 +72,7 @@ void ShapeSkin::loadAttachment(const std::string& filename) {
 		cout << "Cannot read " << filename << endl;
 		return;
 	}
-	cout << "Loading " << filename << endl;
+	//cout << "Loading " << filename << endl;
 
 	string line;
 	int nVerts, maxNInfluences;
@@ -129,7 +129,7 @@ void ShapeSkin::update(int k) {
 	}
 	auto mBoneTransforms = vector<glm::mat4>();
 	for (auto bone : *bones) {
-		glm::mat4 MkM0i = bone.getKeyframe(k) * bone.getInverseBind();
+		glm::mat4 MkM0i = bone->getKeyframe(k) * bone->getInverseBind();
 		mBoneTransforms.push_back(MkM0i);
 	}
 	for (auto w : *weights) {

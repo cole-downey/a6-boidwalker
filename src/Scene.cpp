@@ -18,6 +18,7 @@
 #include "Bounds.h"
 #include "Obstacle.h"
 #include "PCBuffer.h"
+#include "BoneCharacter.h"
 
 
 using namespace std;
@@ -26,7 +27,8 @@ using namespace glm;
 Scene::Scene() :
 	h(1e-3),
 	useThreads(true),
-	nThreads(8) {
+	nThreads(8),
+	nBoids(600) {
 }
 
 Scene::~Scene() {
@@ -41,7 +43,7 @@ Scene::~Scene() {
 	delete responsePCB;
 }
 
-void Scene::load(const string& RESOURCE_DIR) {
+void Scene::load(const string& RESOURCE_DIR, const string& DATA_DIR) {
 	// Units: meters, kilograms, seconds
 	boidShape = make_shared<Shape>();
 	boidShape->loadMesh(RESOURCE_DIR + "cone.obj");
@@ -50,12 +52,18 @@ void Scene::load(const string& RESOURCE_DIR) {
 
 	auto obs = make_shared<Obstacle>(vec3(1.0f, 1.0f, 1.0f), 0.35f);
 	obs->setShape(obsShape);
-	obstacles.push_back(obs);
+	//obstacles.push_back(obs);
 	obs = make_shared<Obstacle>(vec3(-1.0f, 1.0f, -1.0f), 0.75f);
 	obs->setShape(obsShape);
-	obstacles.push_back(obs);
+	//obstacles.push_back(obs);
 
-	nBoids = 600;
+	// bone character
+	boneCharacter = make_shared<BoneCharacter>();
+	boneCharacter->loadAnimData(DATA_DIR);
+	boneCharacter->init();
+
+	// boid flock
+	int nTargets = boneCharacter->getNTargets();
 	auto bounds = Bounds(4.0f, 3.0f, 4.0f, -4.0f, 0.0f, -4.0f);
 	auto target1 = vec3(0.0f, 0.5f, 0.0f);
 	auto target2 = vec3(-2.5f, 0.5f, 1.5f);
@@ -68,13 +76,16 @@ void Scene::load(const string& RESOURCE_DIR) {
 		boid->setObstacles(obstacles);
 		boid->setBounds(bounds);
 		//boid->setTarget(target2 + targetIncrement * (float)i);
-		if (i % 2 == 0) boid->setTarget(target2 + targetIncrement * (float)(i / 2));
+		//if (i % 2 == 0) boid->setTarget(target2 + targetIncrement * (float)(i / 2));
 		//if (i % 2 == 0) boid->setTarget(target1);
+		boid->targetId = (nTargets < nBoids) ? i % nTargets : (nTargets / nBoids) * i;
 		boidFlock.push_back(boid);
 	}
 	for (auto b : boidFlock) {
 		b->setFlock(boidFlock);
 	}
+
+
 	cout << "scene load done" << endl;
 }
 
@@ -109,6 +120,10 @@ void Scene::threadTest() {
 }
 
 void Scene::step() {
+	if (frame != prevFrame) { // only update targets if frame changes
+		updateTargets();
+		prevFrame = frame;
+	}
 	if (useThreads) {
 		for (int i = 0; i < threads.size(); i++) {
 			// deposit h once for each thread
@@ -159,7 +174,7 @@ void Scene::togglePointingObs() {
 	}
 }
 
-void Scene::draw(shared_ptr<MatrixStack> MV, const shared_ptr<Program> prog) const {
+void Scene::draw(shared_ptr<MatrixStack> MV, const shared_ptr<Program> prog, double animt) const {
 	glUniform3fv(prog->getUniform("kdFront"), 1, value_ptr(vec3(1.0f)));
 	for (auto b : boidFlock) {
 		b->draw(MV, prog);
@@ -167,6 +182,7 @@ void Scene::draw(shared_ptr<MatrixStack> MV, const shared_ptr<Program> prog) con
 	for (auto o : obstacles) {
 		o->draw(MV, prog);
 	}
+	frame = boneCharacter->draw(MV, prog, animt);
 }
 
 vec3 Scene::generateRandomPos(Bounds bounds) {
@@ -201,5 +217,11 @@ vec3 Scene::generateRandomPos2(Bounds bounds) {
 	vec3 r = pos - center;
 	pos += spawnRadius * normalize(r);
 	return pos;
+}
+
+void Scene::updateTargets() {
+	for (auto b : boidFlock) {
+		b->setTarget(boneCharacter->getBonePos(b->targetId, frame));
+	}
 }
 

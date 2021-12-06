@@ -10,6 +10,8 @@ class ShapeSkin;
 class Program;
 class MatrixStack;
 
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
 
 class BoneCharacter {
 public:
@@ -21,18 +23,24 @@ public:
 
     BoneCharacter();
     ~BoneCharacter();
-    void loadAnimData(std::string dataDir);
+    void loadAnimData(const std::string& dataDir);
     void init();
     void initBones();
     void initShapes();
-    void draw(std::shared_ptr<MatrixStack> MV, std::shared_ptr<Program> prog, double t);
-    void draw(std::shared_ptr<MatrixStack> MV, std::shared_ptr<Program> prog, int frame);
+    int draw(std::shared_ptr<MatrixStack> MV, std::shared_ptr<Program> prog, double t);
+    void draw(std::shared_ptr<MatrixStack> MV, std::shared_ptr<Program> prog, int _frame);
+    int getFrame() { return frame; };
+    glm::vec3 getBonePos(int i, int f);
+    int getNTargets() { return nBones; };
 private:
+    int frame;
     AnimDataInput animInput;
     std::vector< std::shared_ptr<ShapeSkin> > shapes;
-    std::shared_ptr<std::vector<Bone> > bones;
+    std::shared_ptr<std::vector<std::shared_ptr<Bone> > > bones;
     int nFrames, nBones;
     std::string DATA_DIR;
+    double fps;
+    float scale;
 };
 
 #endif

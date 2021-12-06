@@ -34,7 +34,7 @@ Boid::Boid(vec3 _pos) :
 void Boid::draw(shared_ptr<MatrixStack> MV, const shared_ptr<Program> prog) const {
     if (shape) {
         if (targetEnabled)
-            glUniform3fv(prog->getUniform("kdFront"), 1, glm::value_ptr(vec3(1.0, 0.0, 0.0)));
+            glUniform3fv(prog->getUniform("kdFront"), 1, glm::value_ptr(vec3(0.6, 0.0, 0.0)));
         else
             glUniform3fv(prog->getUniform("kdFront"), 1, glm::value_ptr(vec3(0.0, 0.0, 1.0)));
         MV->pushMatrix();
@@ -193,7 +193,7 @@ vec3 Boid::moveTarget() {
 
 vec3 Boid::moveTarget2() {
     // move towards target
-    float targetFactor = 1 / 10.0f; // default 1/100
+    float targetFactor = 1 / 5.0f; // default 1/10
     if (targetEnabled) {
         return targetFactor * normalize(target - pos);
     }
