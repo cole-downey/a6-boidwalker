@@ -43,19 +43,21 @@ Scene::~Scene() {
 	delete responsePCB;
 }
 
-void Scene::load(const string& RESOURCE_DIR, const string& DATA_DIR) {
+void Scene::load(const string& RESOURCE_DIR, const string& DATA_DIR, bool useObstacles) {
 	// Units: meters, kilograms, seconds
 	boidShape = make_shared<Shape>();
 	boidShape->loadMesh(RESOURCE_DIR + "cone.obj");
 	obsShape = make_shared<Shape>();
 	obsShape->loadMesh(RESOURCE_DIR + "sphere2.obj");
 
-	auto obs = make_shared<Obstacle>(vec3(2.0f, 1.0f, 0.0f), 0.35f);
-	obs->setShape(obsShape);
-	obstacles.push_back(obs);
-	obs = make_shared<Obstacle>(vec3(-1.0f, 1.0f, -1.0f), 0.75f);
-	obs->setShape(obsShape);
-	//obstacles.push_back(obs);
+	if (useObstacles) {
+		auto obs = make_shared<Obstacle>(vec3(0.0f, 1.5f, -2.0f), 1.0f);
+		obs->setShape(obsShape);
+		obstacles.push_back(obs);
+		obs = make_shared<Obstacle>(vec3(-1.0f, 1.5f, 1.0f), 0.75f);
+		obs->setShape(obsShape);
+		//obstacles.push_back(obs);
+	}
 
 	// bone character
 	boneCharacter = make_shared<BoneCharacter>();

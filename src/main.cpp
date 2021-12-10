@@ -47,6 +47,7 @@ shared_ptr<PCBuffer<string>> pcb;
 
 shared_ptr<double> t, t0;
 double animt, animt0;
+bool useObstacles;
 
 static void error_callback(int error, const char* description) {
 	cerr << description << endl;
@@ -136,7 +137,7 @@ static void init() {
 	camera->setInitDistance(9);
 
 	scene = make_shared<Scene>();
-	scene->load(RESOURCE_DIR, DATA_DIR);
+	scene->load(RESOURCE_DIR, DATA_DIR, useObstacles);
 	scene->init();
 
 	// Initialize time.
@@ -173,9 +174,9 @@ void render() {
 	// Clear buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	if (keyToggles[(unsigned)'c']) {
-		glEnable(GL_CULL_FACE);
-	} else {
 		glDisable(GL_CULL_FACE);
+	} else {
+		glEnable(GL_CULL_FACE);
 	}
 	if (keyToggles[(unsigned)'z']) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -277,6 +278,11 @@ int main(int argc, char** argv) {
 	}
 	RESOURCE_DIR = argv[1] + string("/");
 	DATA_DIR = argv[2] + string("/");
+	if (argc > 3) {
+		useObstacles = true;
+	} else  {
+		useObstacles = false;
+	}
 
 	// Set error callback.
 	glfwSetErrorCallback(error_callback);
@@ -285,7 +291,7 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 	// Create a windowed mode window and its OpenGL context.
-	window = glfwCreateWindow(640 * 3, 480 * 3, "Cole Downey", NULL, NULL);
+	window = glfwCreateWindow(640 * 3, 480 * 3, "Boidwalker", NULL, NULL);
 	if (!window) {
 		glfwTerminate();
 		return -1;

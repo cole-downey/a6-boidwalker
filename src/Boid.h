@@ -41,7 +41,6 @@ private:
     glm::vec3 velocity;
 
     glm::vec3 rule1(); // separation
-    glm::vec3 rule1a(); // separation
     glm::vec3 rule2(); // alignment
     glm::vec3 rule3(); // cohesion
     glm::vec3 moveTarget();
@@ -55,6 +54,7 @@ private:
     glm::vec3 target;
     bool targetSet = false;
     bool targetEnabled = false;
+    bool targetBlocked = false;
 
     Bounds bounds;
     bool boundsSet = false;

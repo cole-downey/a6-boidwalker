@@ -48,6 +48,20 @@ void Boid::draw(shared_ptr<MatrixStack> MV, const shared_ptr<Program> prog) cons
 }
 
 void Boid::update(float timestep) {
+    // check if target blocked
+    /*
+    targetBlocked = false;
+    if (targetEnabled) {
+        for (auto o : obstacles) {
+            float displace = distance(target, o->pos) - o->r - r * 2.0f;
+            if (displace < 0) {
+                targetBlocked = true;
+                break;
+            }
+        }
+    }
+    */
+
     float maxSpeed = 5.0f;
     float minSpeed = 0.75f;
     vec3 accel(0.0f);
@@ -92,6 +106,7 @@ vec3 Boid::rule1() {
     // rule 1: separation
     // if within a certain distance of another boid, move away
     float r1Dist = 2.0f * r; // default 2 * r
+    float stiffness = (targetEnabled) ? ((targetBlocked) ? 1.0f : 10.0f) : 5.0f;
     vec3 repellant(0.0f);
     for (auto b : flock) {
         if (b->id != id) {
@@ -101,43 +116,9 @@ vec3 Boid::rule1() {
         }
     }
     for (auto o : obstacles) {
-        if (distance(pos, o->pos) < r1Dist + o->r) {
-            repellant -= (o->pos - pos);
-        }
-    }
-    return repellant;
-}
-
-vec3 Boid::rule1a() {
-    // rule 1: separation
-    // if within a certain distance of another boid, move away
-    float r1Dist = r; // default 2 * r
-    vec3 repellant(0.0f);
-    for (auto b : flock) {
-        if (b->id != id) {
-            vec3 bPos = b->getPos();
-            float dist = distance(pos, bPos) - b->r - r;
-            if (dist < r1Dist) {
-                //float repMag = r1Dist - dist;
-                //repellant -= repMag * normalize(b->pos - pos);
-                float collDot = dot(velocity, (bPos - pos));
-                if (collDot < 0) {
-                    vec3 collVel = velocity * dot(velocity, (bPos - pos));
-                    repellant += collVel;
-                }
-            }
-        }
-    }
-    for (auto o : obstacles) {
-        float dist = distance(pos, o->pos) - o->r - r;
-        if (dist < r1Dist) {
-            //float repMag = r1Dist - dist;
-            //repellant -= repMag * normalize(o->pos - pos);
-            float collDot = dot(velocity, (o->pos - pos));
-            if (collDot < 0) {
-                vec3 collVel = velocity * dot(velocity, (o->pos - pos));
-                repellant += collVel;
-            }
+        float displace = distance(pos, o->pos) - o->r - r1Dist;
+        if (displace < 0) {
+            repellant += displace * stiffness * normalize(o->pos - pos);
         }
     }
     return repellant;
@@ -194,7 +175,7 @@ vec3 Boid::moveTarget() {
 vec3 Boid::moveTarget2() {
     // move towards target
     float targetFactor = 1 / 5.0f; // default 1/10
-    if (targetEnabled) {
+    if (targetEnabled && !targetBlocked) {
         return targetFactor * normalize(target - pos);
     }
     return vec3(0.0f);

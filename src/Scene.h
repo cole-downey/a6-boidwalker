@@ -25,7 +25,7 @@ public:
 	Scene();
 	virtual ~Scene();
 
-	void load(const std::string& RESOURCE_DIR, const std::string& DATA_DIR);
+	void load(const std::string& RESOURCE_DIR, const std::string& DATA_DIR, bool useObstacles = false);
 	void init();
 	void step();
 	void step(double timestep);
