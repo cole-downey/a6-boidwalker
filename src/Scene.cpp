@@ -50,9 +50,9 @@ void Scene::load(const string& RESOURCE_DIR, const string& DATA_DIR) {
 	obsShape = make_shared<Shape>();
 	obsShape->loadMesh(RESOURCE_DIR + "sphere2.obj");
 
-	auto obs = make_shared<Obstacle>(vec3(1.0f, 1.0f, 1.0f), 0.35f);
+	auto obs = make_shared<Obstacle>(vec3(2.0f, 1.0f, 0.0f), 0.35f);
 	obs->setShape(obsShape);
-	//obstacles.push_back(obs);
+	obstacles.push_back(obs);
 	obs = make_shared<Obstacle>(vec3(-1.0f, 1.0f, -1.0f), 0.75f);
 	obs->setShape(obsShape);
 	//obstacles.push_back(obs);
@@ -63,7 +63,7 @@ void Scene::load(const string& RESOURCE_DIR, const string& DATA_DIR) {
 	boneCharacter->init();
 
 	// boid flock
-	int nTargets = boneCharacter->getNTargets();
+	int nTargets = boneCharacter->getNTargetsVert();
 	auto bounds = Bounds(4.0f, 3.0f, 4.0f, -4.0f, 0.0f, -4.0f);
 	auto target1 = vec3(0.0f, 0.5f, 0.0f);
 	auto target2 = vec3(-2.5f, 0.5f, 1.5f);
@@ -84,7 +84,6 @@ void Scene::load(const string& RESOURCE_DIR, const string& DATA_DIR) {
 	for (auto b : boidFlock) {
 		b->setFlock(boidFlock);
 	}
-
 
 	cout << "scene load done" << endl;
 }
@@ -183,6 +182,7 @@ void Scene::draw(shared_ptr<MatrixStack> MV, const shared_ptr<Program> prog, dou
 		o->draw(MV, prog);
 	}
 	frame = boneCharacter->draw(MV, prog, animt);
+	frameSum = boneCharacter->frameTotal;
 }
 
 vec3 Scene::generateRandomPos(Bounds bounds) {
@@ -221,7 +221,7 @@ vec3 Scene::generateRandomPos2(Bounds bounds) {
 
 void Scene::updateTargets() {
 	for (auto b : boidFlock) {
-		b->setTarget(boneCharacter->getBonePos(b->targetId, frame));
+		b->setTarget(boneCharacter->getVertPos(b->targetId, frame, frameSum));
 	}
 }
 

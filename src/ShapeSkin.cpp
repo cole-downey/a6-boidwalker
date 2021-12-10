@@ -121,6 +121,15 @@ void ShapeSkin::loadAttachment(const std::string& filename) {
 	in.close();
 }
 
+void ShapeSkin::init() {
+	for (int i = 0; i < getNVerts(); i++) {
+		attachBuf.push_back(vector<int>());
+	}
+	for (int w = 0; w < weights->size(); w++) {
+		attachBuf.at(weights->at(w).vertInd).push_back(w);
+	}
+}
+
 void ShapeSkin::update(int k) {
 	// clear the buffers
 	for (int i = 0; i < posBuf.size(); i++) {
@@ -151,4 +160,14 @@ void ShapeSkin::update(int k) {
 
 glm::vec3 ShapeSkin::getVertPos(int i) {
 	return vec3(posBuf.at(i * 3), posBuf.at(i * 3 + 1), posBuf.at(i * 3 + 2));
+}
+
+glm::vec3 ShapeSkin::getVertPos(int i, int f) {
+	vec4 bindPos = glm::vec4(bindPosBuf[i * 3], bindPosBuf[i * 3 + 1], bindPosBuf[i * 3 + 2], 1.0);
+	vec3 newPos = vec3(0.0f);
+	for (auto w : attachBuf.at(i)) {
+		mat4 boneTransform = bones->at(weights->at(w).boneInd)->getKeyframe(f) * bones->at(weights->at(w).boneInd)->getInverseBind();
+		newPos += vec3(weights->at(w).weight * boneTransform * bindPos);
+	}
+	return newPos;
 }

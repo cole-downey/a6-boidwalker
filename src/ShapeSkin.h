@@ -27,6 +27,8 @@ public:
 	void init();
 	void update(int k);
 	glm::vec3 getVertPos(int i);
+	glm::vec3 getVertPos(int i, int f);
+	int getNVerts() { return posBuf.size() / 3; };
 
 private:
 	std::vector<unsigned int> elemBuf;
@@ -35,6 +37,7 @@ private:
 	std::vector<float> texBuf;
 	std::vector<float> bindPosBuf;
 	std::vector<float> bindNorBuf;
+	std::vector<std::vector<int> > attachBuf; // stores a list of attachments per vertex
 
 	std::shared_ptr<std::vector<std::shared_ptr<Bone> > > bones;
 	int nBones;

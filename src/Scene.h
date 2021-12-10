@@ -41,6 +41,7 @@ public:
 private:
 	// time
 	mutable int frame, prevFrame = -1; // can be changed during const draw
+	mutable int frameSum;
 	double h;
 
 	// objects

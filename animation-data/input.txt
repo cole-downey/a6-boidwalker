@@ -7,5 +7,6 @@ MESH bigvegas_MouthAnimGeo.obj bigvegas_MouthAnimGeo_skin.txt
 MESH bigvegas_EyesAnimGeo.obj bigvegas_EyesAnimGeo_skin.txt
 MESH bigvegas_BrowsAnimGeo.obj bigvegas_BrowsAnimGeo_skin.txt
 #SKELETON bigvegas_Walking_skel.txt
+SKELETON bigvegas_WalkingInPlace_skel.txt
+#SKELETON bigvegas_Capoeira_skel.txt
 #SKELETON bigvegas_SambaDancing_skel.txt
-SKELETON bigvegas_Capoeira_skel.txt
