@@ -68,7 +68,7 @@ void Boid::update(float timestep) {
     accel += rule1();
     accel += rule2();
     accel += rule3();
-    accel += moveTarget2();
+    accel += tightFollow();
     accel += stayBounds();
     mtxV.lock();
     velocity += accel * timestep / (float)(5e-3); // accel values balanced around 5e-3 timestep
@@ -163,7 +163,7 @@ vec3 Boid::rule3() {
     return (center - pos) * r3Factor;
 }
 
-vec3 Boid::moveTarget() {
+vec3 Boid::looseFollow() {
     // move towards target
     float targetFactor = 1 / 100.0f; // default 1/100
     if (targetEnabled) {
@@ -172,9 +172,9 @@ vec3 Boid::moveTarget() {
     return vec3(0.0f);
 }
 
-vec3 Boid::moveTarget2() {
+vec3 Boid::tightFollow() {
     // move towards target
-    float targetFactor = 1 / 5.0f; // default 1/10
+    float targetFactor = 1 / 7.0f; // default 1/10
     if (targetEnabled && !targetBlocked) {
         return targetFactor * normalize(target - pos);
     }

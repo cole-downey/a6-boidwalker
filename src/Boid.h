@@ -43,8 +43,8 @@ private:
     glm::vec3 rule1(); // separation
     glm::vec3 rule2(); // alignment
     glm::vec3 rule3(); // cohesion
-    glm::vec3 moveTarget();
-    glm::vec3 moveTarget2();
+    glm::vec3 looseFollow();
+    glm::vec3 tightFollow();
     glm::vec3 stayBounds();
 
     std::vector< std::shared_ptr<Boid> > flock;
