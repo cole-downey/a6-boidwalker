@@ -291,6 +291,7 @@ int main(int argc, char** argv) {
 		return -1;
 	}
 	// Create a windowed mode window and its OpenGL context.
+	glfwWindowHint(GLFW_MAXIMIZED , GL_TRUE);
 	window = glfwCreateWindow(640 * 3, 480 * 3, "Boidwalker - Cole Downey", NULL, NULL);
 	if (!window) {
 		glfwTerminate();
